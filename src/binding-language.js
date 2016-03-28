@@ -6,6 +6,14 @@ import {SyntaxInterpreter} from './syntax-interpreter';
 
 let info = {};
 
+//copied from https://www.npmjs.com/package/camelize since I couldn't find a robust camelCase utility function within
+//this package or its dependencies
+function camelCase(str) {
+    return str.replace(/[_.-](\w|$)/g, function (_,x) {
+        return x.toUpperCase();
+    });
+}
+
 export class TemplatingBindingLanguage extends BindingLanguage {
   static inject() { return [Parser, ObserverLocator, SyntaxInterpreter]; }
   constructor(parser, observerLocator, syntaxInterpreter) {
@@ -107,6 +115,9 @@ export class TemplatingBindingLanguage extends BindingLanguage {
     let interpolationStart;
     let parts;
     let partIndex = 0;
+    //should the camelCase transform be run all the time or only if the attribute has a dash?
+    let propertyName = attrName.indexOf('-') !== -1 ? camelCase(attrName) : attrName;
+
 
     while (i >= 0 && i < ii - 2) {
       open = 1;
@@ -175,7 +186,7 @@ export class TemplatingBindingLanguage extends BindingLanguage {
 
     return new InterpolationBindingExpression(
       this.observerLocator,
-      this.attributeMap[attrName] || attrName,
+      this.attributeMap[attrName] || propertyName,
       parts,
       bindingMode.oneWay,
       resources.lookupFunctions,
